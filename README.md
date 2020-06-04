@@ -1,7 +1,7 @@
 PyBEC
 ==============================
 [//]: # (Badges)
-[![Travis Build Status](https://travis-ci.com/REPLACE_WITH_OWNER_ACCOUNT/PyBEC.svg?branch=master)](https://travis-ci.com/REPLACE_WITH_OWNER_ACCOUNT/PyBEC)
+[![Travis Build Status](https://travis-ci.com/brettrhenderson/pybec.svg?branch=master)](https://travis-ci.com/brettrhenderson/pybec)
 [![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/PyBEC/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/PyBEC/branch/master)
 
 

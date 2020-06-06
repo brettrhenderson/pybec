@@ -13,13 +13,9 @@ dependencies:
     # Pip-only installs
   - pip:
     - dask
-    - jupyter
     - matplotlib
     - numpy
     - pandas
-    - Pillow
-    - scikit-image
-    - scikit-learn
     - scipy
     - sklearn
     - pykrige

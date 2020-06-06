@@ -46,7 +46,15 @@ setup(
 
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     url='https://pybec.readthedocs.io/en/latest/',  # Website
-    # install_requires=[],              # Required packages, pulls from pip if needed; do not use for Conda deployment
+    install_requires=[    # Required packages, pulls from pip if needed; do not use for Conda deployment
+        'dask>=1.2.2',
+        'matplotlib>=3.0.3',
+        'numpy>=1.16.2',
+        'pandas>=0.24.2',
+        'scipy>=1.2.1',
+        'sklearn',
+        'pykrige'
+    ],
     platforms=['Linux',
                'Mac OS-X',
                'Unix',

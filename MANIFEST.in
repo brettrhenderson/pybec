@@ -3,4 +3,4 @@ include MANIFEST.in
 include versioneer.py
 
 graft pybec
-global-exclude *.py[cod] __pycache__ *.so
+global-exclude *.py[cod] __pycache__ *.soinclude pybec/_version.py

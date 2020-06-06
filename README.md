@@ -2,8 +2,9 @@ PyBEC
 ==============================
 [//]: # (Badges)
 [![Travis Build Status](https://travis-ci.com/brettrhenderson/pybec.svg?branch=master)](https://travis-ci.com/brettrhenderson/pybec)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/brettrhenderson/pybec.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/brettrhenderson/pybec/context:python)
 [![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/PyBEC/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/PyBEC/branch/master)
-
+[![Documentation Status](https://readthedocs.org/projects/pybec/badge/?version=latest)](https://pybec.readthedocs.io/en/latest/?badge=latest)
 
 Python package for extracting and manipulating Born Effective Charges from QuantumEspresso Output
 

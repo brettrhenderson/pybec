@@ -12,6 +12,7 @@ dependencies:
 
     # Pip-only installs
   - pip:
+    - toolz>=0.8.2
     - dask
     - matplotlib
     - numpy

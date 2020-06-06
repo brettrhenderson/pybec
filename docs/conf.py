@@ -16,8 +16,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
-
 import pybec
+# sys.path.insert(1, os.path.abspath('../pybec'))
 
 
 # -- Project information -----------------------------------------------------
@@ -52,6 +52,7 @@ extensions = [
     'sphinx.ext.extlinks',
 ]
 
+# autosummary_imported_members = True
 autosummary_generate = True
 napoleon_google_docstring = False
 napoleon_use_param = False

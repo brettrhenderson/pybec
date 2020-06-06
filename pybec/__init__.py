@@ -4,7 +4,8 @@ Python package for extracting and manipulating Born Effective Charges from Quant
 """
 
 # Add imports here
-from .pybec import *
+# from .parsers import *
+# from .plotters import *
 
 # Handle versioneer
 from ._version import get_versions

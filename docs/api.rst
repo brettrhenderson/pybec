@@ -3,6 +3,6 @@ API Documentation
 
 .. autosummary::
    :toctree: autosummary
+   :recursive:
 
-   pybec.pybec
-   pybec.plotters
+   pybec

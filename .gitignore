@@ -100,3 +100,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# pycharm
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/tasks.xml
+.idea/shelf

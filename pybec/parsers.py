@@ -7,26 +7,8 @@ Handles the primary functions
 
 
 import numpy as np
-import dask.array as da
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
 import os
-import re
-from scipy.spatial import ConvexHull
-try:
-    from ipywidgets import interact
-except:
-    pass
-from pykrige.rk import Krige
-from pykrige.uk3d import UniversalKriging3D
-from pykrige.compat import GridSearchCV
 import logging
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RationalQuadratic as RQ, ConstantKernel as C
-from scipy.interpolate import Rbf
-from scipy.interpolate import NearestNDInterpolator as NND
-from scipy.interpolate import LinearNDInterpolator as LND
 
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)

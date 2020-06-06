@@ -10,6 +10,10 @@ import pybec.analysis as analysis
 import os
 import re
 import pandas as pd
+try:
+    from ipywidgets import interact
+except ImportError:
+    pass
 
 # Default Markers to use when plotting different elements
 MARKERS = 'o s h + x * p D v ^ < >'
@@ -572,7 +576,7 @@ def next_direction(ax):
 
 
 def multi_slice_viewer_BEC(fig, volume, lattice, add_atoms=True, cell=None, color_dict=None, marker_dict=None,
-                           cmap_atoms=False, cmap='viridis', ion_cmap='plasma', cbar_pos='right', num_bins=6,
+                           cmap_atoms=False, cmap='viridis', ion_cmap='plasma', num_bins=6,
                            resolution=50, is_kriging=False):
     # configure matplotlib to use my defined keystroke callbacks for j,k,l instead of any defaults
     remove_keymap_conflicts({'j', 'k', 'l'})
@@ -614,7 +618,6 @@ def multi_slice_viewer_BEC(fig, volume, lattice, add_atoms=True, cell=None, colo
         ax.num_bins = num_bins
         ax.res = resolution
 
-    cbar_pos = cbar_pos
     min_volume = np.nanmin(volume)
     max_volume = np.nanmax(volume)
 

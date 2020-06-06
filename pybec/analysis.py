@@ -9,13 +9,18 @@ Contains all functions for calculating Born Effective Charges
 import numpy as np
 import pandas as pd
 from pybec import utils
-
-try:
-    from ipywidgets import interact
-except:
-    pass
+import dask.array as da
+from pybec import parsers
+from scipy.spatial import ConvexHull
+from pykrige.rk import Krige
+from pykrige.uk3d import UniversalKriging3D
+from pykrige.compat import GridSearchCV
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RationalQuadratic as RQ, ConstantKernel as C
+from scipy.interpolate import Rbf
+from scipy.interpolate import NearestNDInterpolator as NND
+from scipy.interpolate import LinearNDInterpolator as LND
 import logging
-from pybec.parsers import *
 
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
@@ -335,10 +340,10 @@ def get_dipole_field_displaced(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], q=
 
 def gen_BEC_df(no_efield, clamped_ion, xyz, e_field=0.001, e_field_direction=[0, 0, 1], add_forces=False):
     # parse coordinates
-    coords = get_coordinates(xyz)
+    coords = parsers.get_coordinates(xyz)
 
     # parse forces
-    for_0, for_1 = get_converged_forces(no_efield), get_converged_forces(clamped_ion)
+    for_0, for_1 = parsers.get_converged_forces(no_efield), parsers.get_converged_forces(clamped_ion)
 
     # calculate Born Effective Charges
     BEC = get_BECs(for_0, for_1, e_field, e_field_direction)

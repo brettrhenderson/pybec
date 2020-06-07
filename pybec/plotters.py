@@ -10,10 +10,6 @@ import pybec.analysis as analysis
 import os
 import re
 import pandas as pd
-try:
-    from ipywidgets import interact
-except ImportError:
-    pass
 
 # Default Markers to use when plotting different elements
 MARKERS = 'o s h + x * p D v ^ < >'
@@ -711,7 +707,6 @@ def plot_BEC_heatmap_slices(fig, no_efield, clamped_ion, xyz, matrix_name, np_na
                                                           cmap_atoms=cmap_atoms,
                                                           cmap=cmap,
                                                           ion_cmap=ion_cmap,
-                                                          cbar_pos=cbar_pos,
                                                           num_bins=num_bins,
                                                           resolution=res,
                                                           is_kriging=(interpolation == 'kriging'))

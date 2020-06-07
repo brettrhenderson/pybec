@@ -173,3 +173,11 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+def skip_member(app, what, name, obj, skip, opts):
+    if what == 'module' and name == "tests":
+        return True
+    return None
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', skip_member)

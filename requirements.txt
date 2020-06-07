@@ -1,3 +1,4 @@
+toolz>=0.8.2
 dask>=1.2.2
 imageio>=2.5.0
 jupyter

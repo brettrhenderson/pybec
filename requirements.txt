@@ -11,3 +11,4 @@ scikit-learn>=0.20.3
 scipy>=1.2.1
 sklearn
 pykrige
+git+https://github.com/sphinx-doc/sphinx@3.x

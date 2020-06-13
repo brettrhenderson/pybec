@@ -197,6 +197,38 @@ def infer_local_field(for_0, for_1, z_exp, e_ext=0.001, e_field_direction=[0, 0,
         e_loc[key] = (for_1[key].dot(e_field_direction) - for_0[key].dot(e_field_direction)) / z_exp[key] - e_ext
     return e_loc
 
+def infer_e_field(for_0, for_1, z_exp, e_field_direction=[0, 0, 1]):
+    """
+    Calculate the born effective charges for an array of ions.
+
+    Parameters
+    ----------
+    for_0 : dict
+        Ionic forces in zero field in a dictionary where the keys are the element
+        symbols and the values are the numpy force array for all atoms of that element.
+    for_1 : dict
+        Ionic forces in applied efield but with clamped ions in a dictionary formatted like for_0.
+    z_exp : dict
+        Expected born effective charge for each element type from a matrix-only calculation.
+        Keys are element symbols, and values are expected BECs.
+    e_field_direction : list, optional, default: [0,0,1]
+        The 3D vector direction of the efield.
+        Ex: [0,0,1] is an electric field in the positive z-direction.
+    """
+    e_loc = {}
+    e_field_direction = np.array(e_field_direction) / np.linalg.norm(np.array(e_field_direction))
+
+    # make sure the parsed forces have matching elements
+    if set(for_0.keys()) != set(for_1.keys()):
+        raise ValueError('Different elements present in the two provided files.')
+
+    # get the Born Effective Charge using the finite difference between 0 field and clamped ion
+    for key in for_0:
+        if len(for_0[key]) != len(for_1[key]):
+            raise ValueError('Provided files have different number of {} atoms'.format(key))
+        e_loc[key] = (for_1[key].dot(e_field_direction) - for_0[key].dot(e_field_direction)) / z_exp[key]
+    return e_loc
+
 
 def get_field_along_d(field_dict, sub_mean_field=False, e_field=0.25, e_field_direction=[0, 0, 1]):
     """

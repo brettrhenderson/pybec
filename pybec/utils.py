@@ -47,3 +47,29 @@ def df_to_dicts(df):
         coords[el] = df[df['element'] == el][['X', 'Y', 'Z']].values
         BECs[el] = df[df['element'] == el]['BEC'].values
     return coords, BECs
+
+def make_sphere(r, centr, N):
+    """
+    Adapted from Brian Z Bentz (2020). mySphere(N)
+    (https://www.mathworks.com/matlabcentral/fileexchange/57877-mysphere-n)
+    """
+    Area = 4*np.pi/N
+    Distance = np.sqrt(Area)
+    M_theta = int(round(np.pi/Distance))
+    d_theta = np.pi/M_theta
+    d_phi = Area/d_theta
+    N_new = 0
+    X, Y, Z = [], [], []
+    for m in range(0, M_theta):
+        Theta = np.pi*(m+0.5)/M_theta
+        M_phi = int(round(2*np.pi*np.sin(Theta)/d_phi))  # not exact
+
+        for n in range(0, M_phi):
+            Phi = 2*np.pi*n/M_phi
+
+            N_new = N_new + 1
+
+            X.append(r*np.sin(Theta)*np.cos(Phi))
+            Y.append(r*np.sin(Theta)*np.sin(Phi))
+            Z.append(r*np.cos(Theta))
+    return centr[0] + r * np.array(X), centr[1] + r * np.array(Y), centr[2] + r * np.array(Z), N_new

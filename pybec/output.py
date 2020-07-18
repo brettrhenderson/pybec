@@ -9,6 +9,37 @@ or other visualization software.
 import re
 
 
+def print_coordinates(coords, xyz_file, comment='', format='block', unit='angstrom'):
+    """
+    Prints the XYZ coordinates to a specified file.
+
+    Parameters
+    ----------
+    coords : collections.OrderedDict
+        The coordinates in angstroms in a dictionary where the keys
+        are the element symbols and the values are the numpy
+        arrays of the coordinates for all atoms of that element.
+    xyz_file : str
+        File path to the output .xyz file
+    comment : str
+        Comment to include in line 2 of xyz file
+
+    Returns
+    -------
+    None
+    """
+
+    with open(xyz_file, 'w+') as f:
+        if format == 'xyz':
+            f.write(f'{sum([len(coords[key]) for key in coords]):12}\n')
+            f.write(comment.replace('\n', '') + '\n')
+        else:
+            f.write(f'ATOMIC_POSITIONS ({unit})\n')
+        for key in coords:
+            for atom in coords[key]:
+                f.write(f'{key:2}      {atom[0]:12.9f}   {atom[1]:12.9f}   {atom[2]:12.9f}\n')
+
+
 def col_major_string(v):
     string = ''
     for k in range(v.shape[2]):

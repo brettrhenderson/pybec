@@ -4,3 +4,4 @@ include versioneer.py
 
 graft pybec
 global-exclude *.py[cod] __pycache__ *.soinclude pybec/_version.py
+include pybec/_version.py

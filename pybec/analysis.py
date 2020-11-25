@@ -27,6 +27,150 @@ log = logging.getLogger(__name__)
 
 A_TO_B = 0.529177249
 
+def get_full_pol(directory):
+    """
+    Gets the trajectory of the polarization.
+
+    Parameters
+    ----------
+
+    directory : str
+        The path to a directory containing all of the output files to parse for polarization data.
+
+    Returns
+    -------
+
+    numpy.ndarray
+        Nx2 array with the first column containing the time and second column containing
+        the overall polarization. Duplicate timesteps are removed during processing.
+
+    """
+    pols = {}
+    files = glob.glob(os.path.join(directory, '*'))
+    files.sort(key=lambda x: int(x.split('.')[-1]))
+    for file in files:
+        _, pol = parsers.get_dipole(file)
+        if len(pol):
+            for i, p in enumerate(pol):
+                pols[pol[i, 0]] = pol[i]
+    pols = OrderedDict(sorted(pols.items()))
+    pols = np.concatenate([pols[step].reshape(1,-1) for step in pols], axis=0)
+    time = (np.cumsum(pols[:, 1]) - pols[0, 1] + pols[0,0] * pols[0, 1]).reshape(-1,1)
+    return np.concatenate([time, pols[:, -1].reshape(-1,1)], axis=1)
+
+def find_jumps(arr, thresh=10):
+    """
+    Detect where the trajectory has anomolous values.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        Nx0 array of values to check for outliers
+
+    Returns
+    -------
+    np.ndarray
+        Array of indices in which input array has a value larger than thresh
+    """
+    return np.nonzero(np.abs(arr) > thresh)[0]
+
+def correct_jumps(arr, x=None, jump_quantum=None, jump_threshold=10.):
+    """
+    Correct discontinuities in trajectory
+
+    Either corrects using a best guess to align the slope at the discontinuity
+    with the slope on either side of the discontinuity or using a specified jump
+    size. An integer multiple of this jump is added to the trajectory after
+    the discontinuity to match it closely with the trajectory before.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        Nx0 array of values in the trajectory of some variable.
+
+    x : numpy.ndarray, optional, default=None
+        Nx0 array defining the spacing between values in the trajectory for
+        calculation of slope. If None, a uniform spacing of 1 is assumed.
+
+    jump_quantum : float, optional, default=None
+        This optionally forces the correction added post-discontinuity to be
+        an integer multiple of this jump_quantum size.
+
+    jump_threshold : float, optional, default=10.
+        Sets the sensitivity for detecting jumps. Larger value increases
+        sensitivity and will try to correct smaller jumps.
+
+    Returns
+    -------
+    np.ndarray
+        Nx0 array of original values, with jumps corrected.
+    """
+    arr = np.copy(arr)
+    dv = arr[1:] - arr[0:-1]
+    if x is None:
+        x = np.arange(1, len(arr)+1)
+    dx = x[1:] - x[0:-1]
+    scaled_dv = dv / dx
+    for idx in find_jumps(scaled_dv, thresh=jump_threshold):
+        jump = dv[idx]
+        run = dx[idx]
+        if jump_quantum is not None:
+            n = round(jump/jump_quantum)
+            # correct the elements following the jump
+            arr[idx+1:] -= n * jump_quantum
+        else:
+            ave_dv_dx = (scaled_dv[idx+1] + scaled_dv[idx-1]) / 2
+            rise = ave_dv_dx * run
+            arr[idx+1:] += (-jump + rise)
+    return arr
+
+def correct_jumps_between_arr(arr1, arr2, jump_quantum):
+    """
+    Shift the start value of one array to align with the end value of another.
+
+    Parameters
+    ----------
+    arr1 : numpy.ndarray
+        Nx0 array of values in the trajectory of some variable.
+    arr2 : numpy.ndarray
+        Mx0 array of values in the trajectory of some variable. The function
+        will shift all values in this array such that its start aligns with the
+        end of arr1.
+
+    jump_quantum : float
+        The shift added to arr2 will be an integer multiple of this
+        jump_quantum size.
+
+    Returns
+    -------
+    np.ndarray
+        Mx0 array of shifted arr2 values.
+    """
+    jump = arr2[0] - arr1[-1]
+    n = round(jump/jump_quantum)
+    # correct the elements following the jump
+    arr2 -= n * jump_quantum
+    return arr2
+
+def volume(lattice):
+    """
+    Calculate the volume of a 3D unit cell.
+
+    Parameters
+    ----------
+
+    lattice : numpy.ndarray
+        3 x 3 array with the unit cell vectors as the rows. That is
+        numpy.array([[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]])
+
+    Returns
+    -------
+
+    float
+        Volume of unit cell, calculated as (a x b) * c
+    """
+    return np.dot(np.cross(lattice[0], lattice[1]), lattice[2])
+
 def get_centroid(atoms_dict, key='all'):
     """
     Calculate the centroid of the atoms of a certian element in a unit cell.
@@ -139,10 +283,13 @@ def get_BECs(for_0, for_1, e_field, e_field_direction):
     for_0 : dict
         Ionic forces in zero field in a dictionary where the keys are the element
         symbols and the values are the numpy force array for all atoms of that element.
+
     for_1 : dict
         Ionic forces in applied efield but with clamped ions in a dictionary formatted like for_0.
+
     e_field : float
         The magnitude of the applied electric field.
+
     e_field_direction : list
         The 3D vector direction of the efield.
         Ex: [0,0,1] is an electric field in the positive z-direction.
@@ -172,13 +319,17 @@ def infer_local_field(for_0, for_1, z_exp, e_ext=0.001, e_field_direction=[0, 0,
     for_0 : dict
         Ionic forces in zero field in a dictionary where the keys are the element
         symbols and the values are the numpy force array for all atoms of that element.
+
     for_1 : dict
         Ionic forces in applied efield but with clamped ions in a dictionary formatted like for_0.
+
     z_exp : dict
         Expected born effective charge for each element type from a matrix-only calculation.
         Keys are element symbols, and values are expected BECs.
+
     e_ext : float, optional, default: 0.001
         The magnitude of the applied electric field (au).
+
     e_field_direction : list, optional, default: [0,0,1]
         The 3D vector direction of the efield.
         Ex: [0,0,1] is an electric field in the positive z-direction.
@@ -206,11 +357,14 @@ def infer_e_field(for_0, for_1, z_exp, e_field_direction=[0, 0, 1]):
     for_0 : dict
         Ionic forces in zero field in a dictionary where the keys are the element
         symbols and the values are the numpy force array for all atoms of that element.
+
     for_1 : dict
         Ionic forces in applied efield but with clamped ions in a dictionary formatted like for_0.
+
     z_exp : dict
         Expected born effective charge for each element type from a matrix-only calculation.
         Keys are element symbols, and values are expected BECs.
+
     e_field_direction : list, optional, default: [0,0,1]
         The 3D vector direction of the efield.
         Ex: [0,0,1] is an electric field in the positive z-direction.
@@ -239,11 +393,14 @@ def get_field_along_d(field_dict, sub_mean_field=False, e_field=0.25, e_field_di
     field_dict : dict
         Electric field at atomic locations in a dictionary where the keys are the element
         symbols and the values are the numpy array of the electric field for all atoms of that element.
+
     sub_mean_field : bool, optional
         If set, the external applied field is subtracted from the calculated fields, meaning that only the local field
         disturbance caused by the inclusion will be plotted. Defaults to False.
+
     e_field : float
         The magnitude of the applied electric field in V/m.
+
     e_field_direction : list
         The 3D vector direction of the efield.
         Ex: [0,0,1] is an electric field in the positive z-direction.
@@ -268,7 +425,7 @@ def get_field_along_d(field_dict, sub_mean_field=False, e_field=0.25, e_field_di
 def to_Bohr(coords):
     """Convert a coordinate dictionary from Angstroms to Bohr"""
     for key in coords:
-        coords[key] = coords[key] * A_TO_B
+        coords[key] = coords[key] / A_TO_B
     return coords
 
 
@@ -281,12 +438,15 @@ def get_dipole_field(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], p=1, is_angs
     coords : dict
         Dictionary of atomic coordinates, where the keys are the element symbols,
         and the values are the numpy coordinate array for all atoms of that element.
+
     dipole_loc : list or numpy.ndarray
         The 3D coordinates of the dipole location.
         Ex: dipole_loc=get_centroid(coords, key='Ag')
+
     dipole_loc : list or numpy.ndarray
         The 3D coordinates of the dipole location.
         Ex: dipole_loc=get_centroid(coords, key='Ag')
+
     is_angstrom : bool, optional, default : True
         Indicates whether the input atomic coordinates are in Angstroms (if False, Bohr is assumed)
 
@@ -306,7 +466,7 @@ def get_dipole_field(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], p=1, is_angs
     # make sure everything is in atomic units
     if is_angstrom:
         coords = to_Bohr(coords)
-        dipole_loc = A_TO_B * dipole_loc
+        dipole_loc = dipole_loc / A_TO_B
 
     ions = utils.as_dataframe(coords)
     field = {}
@@ -327,12 +487,11 @@ def get_dipole_field_displaced(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], q=
     coords : dict
         Dictionary of atomic coordinates, where the keys are the element symbols,
         and the values are the numpy coordinate array for all atoms of that element.
+
     dipole_loc : list or numpy.ndarray
         The 3D coordinates of the dipole location.
         Ex: dipole_loc=get_centroid(coords, key='Ag')
-    dipole_loc : list or numpy.ndarray
-        The 3D coordinates of the dipole location.
-        Ex: dipole_loc=get_centroid(coords, key='Ag')
+
     is_angstrom : bool, optional, default : True
         Indicates whether the input atomic coordinates are in Angstroms (if False, Bohr is assumed)
 
@@ -351,7 +510,7 @@ def get_dipole_field_displaced(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], q=
     # make sure everything is in atomic units
     if is_angstrom:
         coords = to_Bohr(coords)
-        dipole_loc = A_TO_B * dipole_loc
+        dipole_loc = dipole_loc / A_TO_B
 
     ions = utils.as_dataframe(coords)
     field = {}
@@ -371,6 +530,41 @@ def get_dipole_field_displaced(coords, dipole_loc=[0, 0, 0], p_vec=[0, 0, 1], q=
 
 
 def gen_BEC_df(no_efield, clamped_ion, xyz, e_field=0.001, e_field_direction=[0, 0, 1], add_forces=False):
+    """
+    Generate a pandas dataframe containing the Born Effective Charges of the
+    ions in the unit cell
+
+    Parameters
+    ----------
+    no_efield : string
+        File path of QE output file containing the polarization with no applied
+        electric field
+
+    clamped_ion : string
+        File path of QE output file containing the polarization with applied
+        electric field but ions clamped in place
+
+    xyz : string
+        File path of .xyz - formatted coordinates of unit cell
+
+    e_field : float, optional, default=0.001
+        Electric field strength in au.
+
+    e_field_direction : list, optional, default=[0, 0, 1]
+        Vector of the electric field direction. In positive z-direction
+        by default
+
+    add_forces : bool, optional, default=False
+        If True, include the forces on the ions before and after electric field
+        applied to the output dataframe
+
+    Returns
+    -------
+    pandas.Dataframe
+        Dataframe of ionic coordinates and Born effective charges. Columns are
+        ["Element", "X", "Y", "Z", "BEC"], with optional "Force0", "Force1".
+    """
+
     # parse coordinates
     coords = parsers.get_coordinates(xyz)
 

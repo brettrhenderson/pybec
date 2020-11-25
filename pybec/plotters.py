@@ -21,12 +21,12 @@ DIRS = ['x', 'y', 'z']
 DIRS_SET = set(DIRS)
 
 
-def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_element, to_plot='r', centroid_of='all', 
+def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_element, to_plot='r', centroid_of='all',
                     e_field=.001, e_field_direction=[0,0,1], cmap=None, cbar_pos = 'top', legend=True, figsize=(8,4),
                     marker_dict=None, color_dict=None, grid=False, alpha=1.0, cbar_shrink=1.0):
     """
     Plots the Born Effective Charges for each ion against the distance of that ion from the nanoparticle centroid.
-    
+
     Parameters
     ---------
     no_efield : str
@@ -39,6 +39,8 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
         Whatever you want to call the matrix, e.g. 'MgO'
     np_name : str
         Whatever you want to call the mNP, e.g. 'Ag8_333'
+    np_element : str
+        Elemental symbol for nanoparticle element.
     centroid_of : str, optional
         The element you want to calculate the centroid for when calculating and plotting against
         the distance to centroid.  If 'all', it will calculate the centroid of the whole unit cell.
@@ -71,11 +73,11 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
         Whether to include grid lines in the plot. Default: False
     alpha : float
         The alpha channel value for the plot colors. Default: 1.0
-    
+
     Returns
     -------
     None
-    
+
     """
 
     # parse coordinates
@@ -91,7 +93,7 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
     elif to_plot == 'phi':
         to_plot_ = phi
     else:
-        to_plot_ = r   
+        to_plot_ = r
     max_dist = max([max(to_plot_[key]) for key in to_plot_])  # for plotting
     min_dist = min([min(to_plot_[key]) for key in to_plot_])  # for plotting
 
@@ -120,7 +122,7 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
 
         # if a colormap is desired
         if cmap is not None and el != np_element:
-            plot = ax.scatter(to_plot_[el], BEC[el], c=np.abs(BEC[el]), cmap=cmap, 
+            plot = ax.scatter(to_plot_[el], BEC[el], c=np.abs(BEC[el]), cmap=cmap,
                         alpha=alpha, edgecolors='k', label=el, marker=marker, vmin=min_BEC, vmax=max_BEC)
         # else just group elements by color
         else:
@@ -137,11 +139,11 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
                         label=el, marker=marker, vmin=min_BEC, vmax=max_BEC)
 
     ax.plot(np.linspace(0, max_dist + 1, 2), np.zeros(2), 'k:')
-    if to_plot == 'r': 
+    if to_plot == 'r':
         ax.set_xlabel('Distance from {} mNP Centroid / $\AA$'.format(np_name))
-    if to_plot == 'theta': 
+    if to_plot == 'theta':
         ax.set_xlabel('Azimuthal Angle / $rad$'.format(np_name))
-    if to_plot == 'phi': 
+    if to_plot == 'phi':
         ax.set_xlabel('Polar Angle / $rad$'.format(np_name))
     ax.set_ylabel('$Z^*$')
     #ax.set_ylabel('$Z^*_{{{}{}}}$'.format(DIRS[e_field_direction], DIRS[e_field_direction]))
@@ -155,7 +157,7 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
 
     if legend:
         ax.legend(loc='right')
-    
+
     if grid:
         ax.grid()
 
@@ -163,18 +165,18 @@ def plot_BEC_v_spher(no_efield, clamped_ion, xyz, matrix_name, np_name, np_eleme
 
 
 def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', centroid_of='all', sub_mean_field=False,
-                    e_field=.25, e_field_direction=[0,0,1], center_dict=None, ref_neg=True, cmap=None, cbar_pos = 'top', 
+                    e_field=.25, e_field_direction=[0,0,1], center_dict=None, ref_neg=True, cmap=None, cbar_pos = 'top',
                     legend=True, figsize=(8,4), marker_dict=None, color_dict=None, grid=False, alpha=1.0, cbar_shrink=1.0,
                     units="au"):
     """
     Plots the electric field predicted on each ion by a continuum (FE) approach.
-    
+
     Parameters
     ---------
 
     xyz : str
         File path to the optimized structure .xyz file
-    xyzE : str
+    xyzE : str or dict
         File path to the file containing the FE efield for each atomic coordinate, or
         Dictionary of electric field values, where the keys are the element symbols,
         and the values are the Nx3 numpy array of electric field values for all atoms of that element.
@@ -224,22 +226,22 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
         The alpha channel value for the plot colors. Default: 1.0
     units : str, optional
         The units for electric field to be added to the y-axis. Default: "au"
-    
+
     Returns
     -------
     None
-    
+
     """
 
     # parse coordinates
     coords = parsers.get_coordinates(xyz)
-    
+
     # parse Efield from the FE simulation
     if isinstance(xyzE, str):
         if not os.path.isfile(xyzE):
             raise ValueError('Invalid file path given for electric field at atomic coordinates.')
         FE_Efield = parsers.get_coordinates(xyzE, skip=1, d=',')
-    elif isinstance(xyzE, dict):  # efield already read in or generated some other way 
+    elif isinstance(xyzE, dict):  # efield already read in or generated some other way
         FE_Efield = xyzE
     else:
         raise ValueError('xyzE must either be file path for electric field in .xyz format or dictionary with'
@@ -255,7 +257,7 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
     elif to_plot == 'phi':
         to_plot_ = phi
     else:
-        to_plot_ = r   
+        to_plot_ = r
     max_dist = max([max(to_plot_[key]) for key in to_plot_])  # for plotting
     min_dist = min([min(to_plot_[key]) for key in to_plot_])  # for plotting
 
@@ -263,11 +265,11 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
     if FE_Efield[list(FE_Efield)[0]].ndim > 1:
         field_to_plot = analysis.get_field_along_d(FE_Efield, sub_mean_field, e_field, e_field_direction)
     else:
-        field_to_plot = FE_Efield    
-    
+        field_to_plot = FE_Efield
+
     max_ftp = max([max(abs(field_to_plot[key])) for key in field_to_plot if key != np_element])  # for plotting
     min_ftp = min([min(abs(field_to_plot[key])) for key in field_to_plot if key != np_element])  # for plotting
-    
+
     # center different elements at different points on y-axis if desired
     if center_dict is not None:
         for i, el in enumerate(field_to_plot):
@@ -280,13 +282,13 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
                 raise ValueError("Center dict provided has no center specified for {}".format(el))
     else:
         center_dict = {el: 0 for el in field_to_plot}
-    
+
     # for colormap
     # old way
     # max_ftp = max([max(abs(field_to_plot[key])) for key in field_to_plot if key != np_element])  # for plotting
     # min_ftp = min([min(abs(field_to_plot[key])) for key in field_to_plot if key != np_element])  # for plotting
-    
-    
+
+
     # plot the BECs against desired spherical coordinate
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
@@ -304,8 +306,8 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
         # if a colormap is desired
         if cmap is not None and el != np_element:
             # old coloring option: np.abs(field_to_plot[el])
-            plot = ax.scatter(to_plot_[el], field_to_plot[el], 
-                              c=(field_to_plot[el] - center_dict[el])*(-1)**(center_dict[el]<0), cmap=cmap, 
+            plot = ax.scatter(to_plot_[el], field_to_plot[el],
+                              c=(field_to_plot[el] - center_dict[el])*(-1)**(center_dict[el]<0), cmap=cmap,
                               alpha=alpha, edgecolors='k', label=el, marker=marker, vmin=min_ftp, vmax=max_ftp)
         # else just group elements by color
         else:
@@ -322,11 +324,11 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
                         label=el, marker=marker, vmin=min_ftp, vmax=max_ftp)
 
     ax.plot(np.linspace(0, max_dist + 1, 2), np.zeros(2), 'k:')
-    if to_plot == 'r': 
+    if to_plot == 'r':
         ax.set_xlabel('Distance from {} mNP Centroid / $\AA$'.format(np_name))
-    if to_plot == 'theta': 
+    if to_plot == 'theta':
         ax.set_xlabel('Azimuthal Angle / $rad$'.format(np_name))
-    if to_plot == 'phi': 
+    if to_plot == 'phi':
         ax.set_xlabel('Polar Angle / $rad$'.format(np_name))
     ax.set_ylabel(f'$E$ / ${units}$')
     #ax.set_ylabel('$Z^*_{{{}{}}}$'.format(DIRS[e_field_direction], DIRS[e_field_direction]))
@@ -340,33 +342,33 @@ def plot_FE_E_v_spher(xyz, xyzE, matrix_name, np_name, np_element, to_plot='r', 
 
     if legend:
         ax.legend(loc='right')
-    
+
     if grid:
         ax.grid()
 
     return fig, ax, cb, pad
-    
-    
+
+
 def plot_BEC_3D(no_efield, clamped_ion, xyz, matrix_name, np_name, e_field=.001,
              e_field_direction=2, cbar_pos = 'top', legend=True, figsize=(8,8),
              marker_dict=None, grid=False, cmap='magma', alpha=1.0, cbar_shrink=1.0):
-    
+
     # parse coordinates
     coords = parsers.get_coordinates(xyz)
-    
+
     # parse forces
     for_0, for_1 = parsers.get_converged_forces(no_efield), parsers.get_converged_forces(clamped_ion)
 
     # calculate Born Effective Charges
     BEC = analysis.get_BECs(for_0, for_1, e_field, e_field_direction)
-    
+
     # for colormap
     max_BEC = max([max(BEC[key]) for key in BEC])  # for plotting
     min_BEC = min([min(BEC[key]) for key in BEC])  # for plotting
-    
+
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection='3d')
-    
+
     for i, el in enumerate(BEC):
         # choose marker, using the provided ones if given
         if marker_dict is not None:
@@ -377,22 +379,22 @@ def plot_BEC_3D(no_efield, clamped_ion, xyz, matrix_name, np_name, e_field=.001,
         # use the default color list
         else:
             marker = MARKERS[i % len(MARKERS)]
-    
+
         # plot on 3D axes
-        plot = ax.scatter(coords[el][:,0], coords[el][:,1], coords[el][:,2], c=BEC[el], cmap=cmap, 
+        plot = ax.scatter(coords[el][:,0], coords[el][:,1], coords[el][:,2], c=BEC[el], cmap=cmap,
                    alpha=alpha, edgecolors='k', label=el, marker=marker, vmin=min_BEC, vmax=max_BEC)
 
     ax.set_xlabel('X / $\AA$')
     ax.set_ylabel('Y / $\AA$')
     ax.set_zlabel('Z / $\AA$')
     ax.set_title('Born Effective Charges for {} Matrix with {} NanoParticle'.format(matrix_name, np_name))
-    
+
     # Now add the colorbar if specified
     cb, pad = add_colorbar(fig, plot, cbar_pos, shrink=cbar_shrink)
 
     if legend:
         ax.legend()
-    
+
     if grid:
         ax.grid()
 

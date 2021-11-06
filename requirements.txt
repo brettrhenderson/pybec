@@ -11,3 +11,4 @@ scikit-learn>=0.20.3
 scipy>=1.2.1
 sklearn
 pykrige==1.5.1
+sphinx>=3.0
